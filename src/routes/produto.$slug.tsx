@@ -1,0 +1,38 @@
+import { siteConfig } from "@/config/siteConfig";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useState } from "react";
+import { MessageCircle, Minus, Plus, ShieldCheck, ShoppingCart, Store, Truck } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
+import { ProductCard } from "@/components/catalog/ProductCard";
+import { PRODUCTS } from "@/data/products";
+import { formatCurrency } from "@/lib/utils";
+import { useCart } from "@/context/CartContext";
+
+export const Route = createFileRoute("/produto/$slug")({
+  loader: ({ params }) => { const found = PRODUCTS.find((x) => x.slug === params.slug); if (!found) throw notFound(); return found; },
+  head: ({ loaderData: p }) => ({ meta: [{ title: `${p?.name ?? "Produto"} | Sua Marca` }, { name: "description", content: p?.description ?? "" }, { property: "og:title", content: p?.name ?? "" }, { property: "og:description", content: p?.description ?? "" }, { property: "og:image", content: `https://seudominio.com${p?.image ?? ""}` }], links: [{ rel: "canonical", href: `https://seudominio.com/produto/${p?.slug ?? ""}` }] }),
+  component: ProductPage,
+});
+
+function ProductPage() {
+  const product = Route.useLoaderData();
+  const [selectedImage, setSelectedImage] = useState(product.image);
+  const [quantity, setQuantity] = useState(1);
+  const [size, setSize] = useState(product.sizes?.[0]);
+  const { addItem } = useCart();
+  const related = PRODUCTS.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 4);
+  const whatsapp = `https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(`Olá! Tenho interesse em ${product.name}${size ? `, tamanho ${size}` : ""} (${formatCurrency(product.price)}).`)}`;
+  const assurances = [{ icon: ShieldCheck, label: "Compra segura" }, { icon: Truck, label: "Entrega ou retirada" }, { icon: Store, label: "Duas lojas físicas" }, { icon: MessageCircle, label: "Atendimento humano" }];
+
+  return <div className="min-h-screen bg-background"><Header /><main><div className="container mx-auto px-4 py-8"><nav className="text-xs text-muted-foreground mb-6"><Link to="/">Início</Link> / <Link to="/catalogo" search={{ categoria: product.category }}>{product.category}</Link> / {product.name}</nav><div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
+    <div><div className="aspect-[4/5] bg-white rounded-3xl overflow-hidden"><img src={selectedImage} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" /></div><div className="flex gap-3 overflow-x-auto mt-3">{product.images.map((image, index) => <button key={image} onClick={() => setSelectedImage(image)} className={`w-20 h-20 rounded-xl overflow-hidden border-2 shrink-0 ${selectedImage === image ? "border-primary" : "border-transparent"}`}><img src={image} alt={`${product.name} - foto ${index + 1}`} className="w-full h-full object-cover" /></button>)}</div></div>
+    <div className="lg:pt-4"><p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary/60">{product.category} · {product.subcategory}</p><h1 className="text-3xl lg:text-5xl font-bold text-primary mt-3 leading-tight">{product.name}</h1><p className="text-muted-foreground mt-4 leading-relaxed">{product.description}</p><div className="mt-6">{product.oldPrice && <p className="text-sm text-muted-foreground line-through">De {formatCurrency(product.oldPrice)}</p>}<p className="text-3xl font-bold text-primary">{formatCurrency(product.price)}</p><p className="text-xs text-muted-foreground mt-1">Consulte as condições de pagamento no fechamento do pedido.</p></div>
+      {product.sizes && <div className="mt-7"><p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Tamanho</p><div className="flex flex-wrap gap-2">{product.sizes.map((item) => <button key={item} onClick={() => setSize(item)} className={`px-4 py-2 rounded-full border text-xs font-semibold ${size === item ? "bg-primary text-white border-primary" : "bg-white border-border"}`}>{item}</button>)}</div></div>}
+      <div className="mt-7"><p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Quantidade</p><div className="inline-flex items-center border border-border rounded-full bg-white"><button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-3" aria-label="Diminuir"><Minus className="w-4 h-4" /></button><span className="w-10 text-center font-bold">{quantity}</span><button onClick={() => setQuantity(quantity + 1)} className="p-3" aria-label="Aumentar"><Plus className="w-4 h-4" /></button></div></div>
+      <div className="grid sm:grid-cols-2 gap-3 mt-8"><button onClick={() => addItem(product, quantity)} className="bg-primary text-white py-4 px-5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"><ShoppingCart className="w-4 h-4" />Adicionar ao carrinho</button><a href={whatsapp} target="_blank" rel="noreferrer" className="bg-green-600 text-white py-4 px-5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"><MessageCircle className="w-4 h-4" />Comprar pelo WhatsApp</a></div>
+      <div className="grid grid-cols-2 gap-3 mt-8 pt-6 border-t border-border">{assurances.map(({ icon: Icon, label }) => <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground"><Icon className="w-4 h-4 text-primary" />{label}</div>)}</div>
+      <div className="mt-8 divide-y divide-border border-y border-border"><details open className="py-4"><summary className="font-bold text-xs uppercase tracking-wider text-primary cursor-pointer">Descrição</summary><p className="text-sm text-muted-foreground mt-3">{product.description}</p></details>{product.sizes && <details className="py-4"><summary className="font-bold text-xs uppercase tracking-wider text-primary cursor-pointer">Tamanhos disponíveis</summary><p className="text-sm text-muted-foreground mt-3">{product.sizes.join(", ")}.</p></details>}<details className="py-4"><summary className="font-bold text-xs uppercase tracking-wider text-primary cursor-pointer">Entrega e retirada</summary><p className="text-sm text-muted-foreground mt-3">Confirme prazo, valor e disponibilidade com a equipe no WhatsApp.</p></details></div>
+    </div></div><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.description, image: product.images.map((image) => `https://seudominio.com${image}`), category: product.category, offers: { "@type": "Offer", priceCurrency: "BRL", price: product.price, url: `https://seudominio.com/produto/${product.slug}` } }) }} /></div>{related.length > 0 && <section className="py-16 bg-white"><div className="container mx-auto px-4"><h2 className="text-2xl lg:text-3xl font-bold text-primary text-center mb-10">Você também pode gostar</h2><div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">{related.map((item) => <ProductCard key={item.id} product={item} />)}</div></div></section>}<div className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-border p-3 grid grid-cols-2 gap-2"><button onClick={() => addItem(product, quantity)} className="bg-primary text-white rounded-full py-3 text-[10px] font-bold uppercase">Adicionar</button><a href={whatsapp} className="bg-green-600 text-white rounded-full py-3 text-[10px] font-bold uppercase text-center">WhatsApp</a></div><FloatingWhatsApp /></main><Footer /></div>;
+}

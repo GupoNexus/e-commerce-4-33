@@ -1,0 +1,8 @@
+import { siteConfig } from "@/config/siteConfig";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { GUIDE_ARTICLES } from "@/data/guide";
+export const Route = createFileRoute("/guia/")({ head: () => ({ meta: [{ title: "Guia Sua Marca | Dicas para escolher e cuidar dos seus enxovais" }, { name: "description", content: "Guias práticos sobre tamanhos de cama, quantidade de fios, toalhas, combinações e cuidados com enxovais." }] }), component: GuidePage });
+function GuidePage() { return <div className="min-h-screen bg-background"><Header /><main className="container mx-auto px-4 py-14"><div className="max-w-2xl"><p className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary/60">Conteúdo Sua Marca</p><h1 className="text-4xl lg:text-5xl font-bold text-primary mt-3">Guia Sua Marca</h1><p className="text-muted-foreground mt-4">Informações práticas para escolher, combinar e conservar seus enxovais.</p></div><div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-12">{GUIDE_ARTICLES.map((article) => <Link key={article.slug} to="/guia/$slug" params={{ slug: article.slug }} className="bg-white rounded-2xl border border-border p-6 hover:shadow-lg transition-all"><h2 className="font-bold text-primary text-lg">{article.title}</h2><p className="text-sm text-muted-foreground mt-2">{article.description}</p><span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary mt-5">Ler artigo <ArrowRight className="w-4 h-4" /></span></Link>)}</div></main><Footer /></div> }

@@ -1,0 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import { ProductCard } from "@/components/catalog/ProductCard";
+import { OFFER_PRODUCTS } from "@/data/products";
+import { siteConfig } from "@/config/siteConfig";
+export function Offers() { if (!OFFER_PRODUCTS.length) return null; const homeOffers = OFFER_PRODUCTS.slice(0, 4); return <section className="py-16 bg-secondary/20"><div className="container mx-auto px-4"><div className="text-center mb-10"><p className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary/60 mb-2">{siteConfig.home.offersEyebrow}</p><h2 className="text-2xl lg:text-3xl font-bold text-primary">{siteConfig.home.offersTitle}</h2></div><div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">{homeOffers.map((product) => <ProductCard key={product.id} product={product} />)}</div><div className="text-center mt-10"><Link to="/catalogo" search={{ oferta: "1" }} className="inline-block bg-primary text-white px-8 py-3 rounded-full text-xs font-bold uppercase tracking-wider">Ver todas as ofertas</Link></div></div></section>; }
